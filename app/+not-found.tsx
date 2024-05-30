@@ -6,10 +6,23 @@ import { ThemedView } from '@/components/ThemedView';
 
 export default function NotFoundScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">Esta tela não existe</ThemedText>
-      <Link href="/" style={styles.link}>
-        <ThemedText type="link">Por favor, vá para a tela principal</ThemedText>
+    <ThemedView
+      style={styles.container}
+    >
+      <ThemedText
+        type="title"
+      >
+        Esta tela não existe
+      </ThemedText>
+      <Link
+        href="/"
+        style={styles.link}
+      >
+        <ThemedText
+          type="link"
+        >
+          Por favor, vá para a tela principal
+        </ThemedText>
       </Link>
     </ThemedView>
   );
