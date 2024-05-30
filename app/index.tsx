@@ -4,9 +4,11 @@ import { ThemedTextInput } from '@/components/ThemedTextInput';
 import { ThemedView } from '@/components/ThemedView';
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useColorScheme } from 'react-native';
 
 export default function Login() {
+  const colorScheme = useColorScheme();
+
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
@@ -51,7 +53,7 @@ export default function Login() {
           />
 
           <ThemedButton
-            title="Cadastrar"
+            title={Platform.OS === 'ios' ? 'Login' : 'LOGIN'}
             onPress={handleLogin}
             containerStyle={styles.button}
           />
@@ -69,7 +71,7 @@ export default function Login() {
       </KeyboardAvoidingView>
 
       <ImageBackground
-        source={require('../assets/images/calendar-background-image.png')}
+        source={colorScheme === 'dark' ? require('../assets/images/calendar-background-image-dark.png') : require('../assets/images/calendar-background-image-light.png')}
         style={styles.backgroundImage}
         imageStyle={styles.backgroundImageStyle}
       />
