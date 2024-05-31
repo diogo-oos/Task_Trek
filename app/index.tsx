@@ -2,7 +2,7 @@ import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedTextInput } from '@/components/ThemedTextInput';
 import { ThemedView } from '@/components/ThemedView';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useColorScheme } from 'react-native';
 
@@ -13,6 +13,7 @@ export default function Login() {
   const [senha, setSenha] = useState('');
 
   const handleLogin = () => {
+    router.replace('/task');
   };
 
   return (

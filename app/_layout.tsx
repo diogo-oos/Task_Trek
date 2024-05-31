@@ -28,9 +28,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'light' ? DefaultTheme : DarkTheme }>
       <Stack>
-        <Stack.Screen name="+not-found" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="register/index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );
