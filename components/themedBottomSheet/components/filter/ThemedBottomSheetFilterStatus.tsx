@@ -2,13 +2,13 @@ import { FlatList, ListRenderItemInfo, StyleSheet, useColorScheme } from 'react-
 
 import { BottomSheet, CheckBox, type BottomSheetProps } from '@rneui/base';
 import { Colors } from '@/constants/Colors';
-import { ThemedView } from './ThemedView';
-import { ThemedText } from './ThemedText';
-import { Priority, getPriority } from '@/enums/EnumPriority';
+import { ThemedView } from '../../../ThemedView';
+import { ThemedText } from '../../../ThemedText';
 import { useState } from 'react';
+import { Status, getStatus } from '@/enums/EnumStatus';
 
 export type ListItens = {
-    priority: Priority,
+    status: Status,
     checked: boolean,
 };
 
@@ -17,7 +17,7 @@ export type ThemedBottomSheetProps = BottomSheetProps & {
     onFilter: (selectIds: number[]) => void,
 };
 
-export function ThemedBottomSheetFilterPriority({
+export function ThemedBottomSheetFilterStatus({
     onFilter,
     ...rest
 }: ThemedBottomSheetProps) {
@@ -25,15 +25,15 @@ export function ThemedBottomSheetFilterPriority({
 
     const [listItens, setListItens] = useState<ListItens[]>([
         {
-            priority: Priority.Low,
+            status: Status.Todo,
             checked: true,
         },
         {
-            priority: Priority.Medium,
+            status: Status.InProgress,
             checked: true,
         },
         {
-            priority: Priority.High,
+            status: Status.Done,
             checked: true,
         },
     ]);
@@ -45,12 +45,12 @@ export function ThemedBottomSheetFilterPriority({
             >
                 <CheckBox
                     center
-                    title={`Prioridade ${getPriority(item.item.priority)}`}
+                    title={getStatus(item.item.status)}
                     checked={item.item.checked}
                     onPress={() => {
-                        listItens[item.item.priority].checked = !item.item.checked;
+                        listItens[item.item.status].checked = !item.item.checked;
                         setListItens(listItens);
-                        onFilter(listItens.filter((item) => item.checked).map((item) => item.priority));
+                        onFilter(listItens.filter((item) => item.checked).map((item) => item.status));
                     }}
                     textStyle={{ color: colorScheme === 'light' ? Colors['light'].icon : Colors['dark'].icon}}
                     checkedColor={colorScheme === 'light' ? Colors['light'].icon : Colors['dark'].icon}
@@ -71,7 +71,7 @@ export function ThemedBottomSheetFilterPriority({
                 <FlatList
                     data={listItens}
                     renderItem={(item) => renderItem(item)}
-                    keyExtractor={(item, index) => item.priority.toString()}
+                    keyExtractor={(item, index) => item.status.toString()}
                 />
             </ThemedView>
         </BottomSheet>

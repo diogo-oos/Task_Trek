@@ -2,9 +2,9 @@ import { GestureResponderEvent, StyleSheet, useColorScheme } from 'react-native'
 
 import { BottomSheet, type BottomSheetProps } from '@rneui/base';
 import { Colors } from '@/constants/Colors';
-import { ThemedView } from './ThemedView';
-import { ThemedText } from './ThemedText';
-import { ThemedButton } from './ThemedButton';
+import { ThemedView } from '../ThemedView';
+import { ThemedText } from '../ThemedText';
+import { ThemedButton } from '../ThemedButton';
 
 export type ListItens = {
   onPress: (event: GestureResponderEvent) => void,
@@ -15,10 +15,12 @@ export type ListItens = {
 
 
 export type ThemedBottomSheetProps = BottomSheetProps & {
+  title: string,
   listItens: ListItens[],
 };
 
 export function ThemedBottomSheet({
+  title,
   listItens,
   ...rest
 }: ThemedBottomSheetProps) {
@@ -29,7 +31,7 @@ export function ThemedBottomSheet({
       {...rest}
     >
       <ThemedView style={[styles.menuContainer, { borderTopColor: colorScheme === 'light' ? Colors['light'].border : Colors['dark'].border }]}>
-        <ThemedText type='title' style={styles.title}>Filtrar por</ThemedText>
+        <ThemedText type='title' style={styles.title}>{title}</ThemedText>
 
         <ThemedView style={styles.menuContainerItens}>
           {

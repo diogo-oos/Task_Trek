@@ -7,10 +7,11 @@ import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, FlatList, ListRenderItemInfo, useColorScheme } from 'react-native';
-import { ThemedBottomSheet } from '@/components/ThemedBottomSheet';
-import { ThemedBottomSheetFilterPriority } from '@/components/ThemedBottomSheetFilterPriority';
+import { ThemedBottomSheet } from '@/components/themedBottomSheet/ThemedBottomSheet';
+import { ThemedBottomSheetFilterPriority } from '@/components/themedBottomSheet/components/filter/ThemedBottomSheetFilterPriority';
 import { Status, getStatus } from '@/enums/EnumStatus';
-import { ThemedBottomSheetFilterStatus } from '@/components/ThemedBottomSheetFilterStatus';
+import { ThemedBottomSheetFilterStatus } from '@/components/themedBottomSheet/components/filter/ThemedBottomSheetFilterStatus';
+import { Sort } from '@/enums/EnumSort';
 
 export type ListItens = {
   title: string,
@@ -19,18 +20,25 @@ export type ListItens = {
   priority: number,
   status: number,
 };
-
+ 
 export default function taskList() {
   const colorScheme = useColorScheme();
 
   const [selectedDate, setSelectedDate] = useState(moment().endOf('day'));
+
   const [visibleBottomSheetFilter, setVisibleBottomSheetFilter] = useState(false);
   const [visibleBottomSheetFilterPriority, setVisibleBottomSheetFilterPriority] = useState(false);
   const [visibleBottomSheetFilterStatus, setVisibleBottomSheetFilterStatus] = useState(false);
 
+  const [visibleBottomSheetSort, setVisibleBottomSheetSort] = useState(false);
+
+  const [sortDate, setSortDate] = useState(Sort.Descending);
+
+  const [sortTitle, setSortTitle] = useState(Sort.Ascending);
+
   const IMMUTABLEDATA: ListItens[] = [
     {
-      title: 'teste titulo',
+      title: 'ateste titulo',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
       date: selectedDate.format('DD MMMM'),
       priority: Priority.Low,
@@ -82,7 +90,7 @@ export default function taskList() {
 
   const [DATA, SETDATA] = useState<ListItens[]>([
     {
-      title: 'teste titulo',
+      title: 'ateste titulo',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
       date: selectedDate.format('DD MMMM'),
       priority: Priority.Low,
@@ -147,6 +155,37 @@ export default function taskList() {
   };
 
   const handleEditItem = () => {
+  };
+
+  const handleDeleteItem = () => {
+  };
+
+  const handleFilterItemByPriority = (selectIds: number[]) => {
+    SETDATA(IMMUTABLEDATA.filter((item) => selectIds.includes(item.priority)));
+  };
+
+  const handleFilterItemByStatus = (selectIds: number[]) => {
+    SETDATA(IMMUTABLEDATA.filter((item) => selectIds.includes(item.status)));
+  };
+
+  const handleSortItemByDate = () => {
+    if (sortDate === Sort.Descending) {
+      SETDATA(IMMUTABLEDATA.sort((a, b) => moment(a.date).isAfter(b.date) ? 1 : -1));
+      setSortDate(Sort.Ascending);
+    } else {
+      SETDATA(IMMUTABLEDATA.sort((a, b) => moment(a.date).isBefore(b.date) ? 1 : -1));
+      setSortDate(Sort.Descending);
+    }
+  };
+
+  const handleSortItemByTitle = () => {
+    if (sortTitle === Sort.Ascending) {
+      SETDATA(IMMUTABLEDATA.sort((a, b) => a.title.localeCompare(b.title)));
+      setSortTitle(Sort.Descending);
+    } else {
+      SETDATA(IMMUTABLEDATA.sort((a, b) => b.title.localeCompare(a.title)));
+      setSortTitle(Sort.Ascending);
+    }
   };
 
   const renderItem = (item: ListRenderItemInfo<ListItens>) => {
@@ -216,18 +255,18 @@ export default function taskList() {
 
   return (
     <>
-      <ThemedBottomSheetFilterStatus
-        modalProps={{}}
-        isVisible={visibleBottomSheetFilterStatus}
-        onBackdropPress={() => setVisibleBottomSheetFilterStatus(false)}
-        onFilter={(selectIds: number[]) => SETDATA(IMMUTABLEDATA.filter((item) => selectIds.includes(item.status)))}
-      />
-
       <ThemedBottomSheetFilterPriority
         modalProps={{}}
         isVisible={visibleBottomSheetFilterPriority}
         onBackdropPress={() => setVisibleBottomSheetFilterPriority(false)}
-        onFilter={(selectIds: number[]) => SETDATA(IMMUTABLEDATA.filter((item) => selectIds.includes(item.priority)))}
+        onFilter={(selectIds: number[]) => handleFilterItemByPriority(selectIds)}
+      />
+
+      <ThemedBottomSheetFilterStatus
+        modalProps={{}}
+        isVisible={visibleBottomSheetFilterStatus}
+        onBackdropPress={() => setVisibleBottomSheetFilterStatus(false)}
+        onFilter={(selectIds: number[]) => handleFilterItemByStatus(selectIds)}
       />
 
       <ThemedView
@@ -294,6 +333,7 @@ export default function taskList() {
       </ThemedView>
 
       <ThemedBottomSheet
+        title="Filtrar por"
         modalProps={{}}
         isVisible={visibleBottomSheetFilter}
         onBackdropPress={() => setVisibleBottomSheetFilter(false)}
@@ -309,6 +349,27 @@ export default function taskList() {
             icon: 'tasks',
             iconType: 'font-awesome',
             title: 'Status',
+          },
+        ]}
+      />
+
+      <ThemedBottomSheet
+        title="Ordenar por"
+        modalProps={{}}
+        isVisible={visibleBottomSheetSort}
+        onBackdropPress={() => setVisibleBottomSheetSort(false)}
+        listItens={[
+          {
+            onPress: () => handleSortItemByDate(),
+            icon: 'calendar-o',
+            iconType: 'font-awesome',
+            title: sortDate === Sort.Descending ? 'Mais recentes primeiro' : 'Mais antigas primeiro',
+          },
+          {
+            onPress: () => handleSortItemByTitle(),
+            icon: sortTitle === Sort.Ascending ?  'sort-alpha-asc' : 'sort-alpha-desc',
+            iconType: 'font-awesome',
+            title: 'Título',
           },
         ]}
       />
@@ -335,6 +396,7 @@ export default function taskList() {
             lightColor="#3fa9ff"
             darkColor="#3fa9ff"
             type="clear"
+            onPress={() => setVisibleBottomSheetSort(true)}
             icon={{
               name: 'sort',
               type: 'font-awesome',
