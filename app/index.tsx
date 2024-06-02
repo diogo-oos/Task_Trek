@@ -22,27 +22,27 @@ export default function Login() {
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ThemedText
+          type="title"
+          style={styles.title}
+        >
+          Task Trek
+        </ThemedText>
+
+        <ThemedText
+          type="title"
+          style={styles.subTitle}
+        >
+          Login
+        </ThemedText>
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          <ThemedText
-            type="title"
-            style={styles.title}
-          >
-            Task Trek
-          </ThemedText>
-
-          <ThemedText
-            type="title"
-            style={styles.subTitle}
-          >
-            Login
-          </ThemedText>
-
           <ThemedText style={styles.label}>Email</ThemedText>
           <ThemedTextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            placeholder="Digite o seu e-mail"
           />
 
           <ThemedText style={styles.label}>Senha</ThemedText>
@@ -51,6 +51,7 @@ export default function Login() {
             value={senha}
             onChangeText={setSenha}
             secureTextEntry
+            placeholder="Digite a sua senha"
           />
 
           <ThemedButton

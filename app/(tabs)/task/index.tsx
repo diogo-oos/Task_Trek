@@ -5,7 +5,7 @@ import { Colors } from '@/constants/Colors';
 import { Priority, getPriority } from '@/enums/EnumPriority';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, FlatList, ListRenderItemInfo, useColorScheme } from 'react-native';
 import { ThemedBottomSheet } from '@/components/themedBottomSheet/ThemedBottomSheet';
 import { ThemedBottomSheetFilterPriority } from '@/components/themedBottomSheet/components/filter/ThemedBottomSheetFilterPriority';
@@ -13,6 +13,7 @@ import { Status, getStatus } from '@/enums/EnumStatus';
 import { ThemedBottomSheetFilterStatus } from '@/components/themedBottomSheet/components/filter/ThemedBottomSheetFilterStatus';
 import { Sort } from '@/enums/EnumSort';
 import { router } from 'expo-router';
+import { TaskContext } from '../_layout';
 
 export type ListItens = {
   title: string,
@@ -23,9 +24,14 @@ export type ListItens = {
 };
  
 export default function taskList() {
+  const {
+    IMMUTABLEDATA,
+    DATA,
+    SETDATA,
+    selectedDate,
+    setSelectedDate,
+  } = useContext(TaskContext);
   const colorScheme = useColorScheme();
-
-  const [selectedDate, setSelectedDate] = useState(moment().endOf('day'));
 
   const [visibleBottomSheetFilter, setVisibleBottomSheetFilter] = useState(false);
   const [visibleBottomSheetFilterPriority, setVisibleBottomSheetFilterPriority] = useState(false);
@@ -36,110 +42,6 @@ export default function taskList() {
   const [sortDate, setSortDate] = useState(Sort.Descending);
 
   const [sortTitle, setSortTitle] = useState(Sort.Ascending);
-
-  const IMMUTABLEDATA: ListItens[] = [
-    {
-      title: 'ateste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Low,
-      status: Status.Todo,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Medium,
-      status: Status.Done,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.High,
-      status: Status.Todo,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Medium,
-      status: Status.Todo,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Medium,
-      status: Status.InProgress,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.High,
-      status: Status.InProgress,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Low,
-      status: Status.Done,
-    },
-  ];
-
-  const [DATA, SETDATA] = useState<ListItens[]>([
-    {
-      title: 'ateste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Low,
-      status: Status.Todo,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Medium,
-      status: Status.Done,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.High,
-      status: Status.Todo,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Medium,
-      status: Status.Todo,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Medium,
-      status: Status.InProgress,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam suscipit aut temporibus, eaque rem iure!',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.High,
-      status: Status.InProgress,
-    },
-    {
-      title: 'teste titulo',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-      date: selectedDate.format('DD MMMM'),
-      priority: Priority.Low,
-      status: Status.Done,
-    },
-  ]);
 
   useEffect(() => {
     moment.locale('pt-br');

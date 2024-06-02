@@ -23,26 +23,26 @@ export default function Register() {
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ThemedText
+          type="title"
+          style={styles.title}
+        >
+          Task Trek
+        </ThemedText>
+
+        <ThemedText
+          type="title"
+          style={styles.subTitle}
+        >
+          Cadastro
+        </ThemedText>
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          <ThemedText
-            type="title"
-            style={styles.title}
-          >
-            Task Trek
-          </ThemedText>
-
-          <ThemedText
-            type="title"
-            style={styles.subTitle}
-          >
-            Cadastro
-          </ThemedText>
-
           <ThemedText style={styles.label}>Nome</ThemedText>
           <ThemedTextInput
             style={styles.input}
             value={nome}
             onChangeText={setNome}
+            placeholder="Digite o seu nome"
           />
 
           <ThemedText style={styles.label}>Email</ThemedText>
@@ -51,6 +51,7 @@ export default function Register() {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            placeholder="Digite o seu e-mail"
           />
 
           <ThemedText style={styles.label}>Senha</ThemedText>
@@ -59,6 +60,7 @@ export default function Register() {
             value={senha}
             onChangeText={setSenha}
             secureTextEntry
+            placeholder="Digite a sua senha"
           />
 
           <ThemedText style={styles.label}>Confirmar Senha</ThemedText>
@@ -67,6 +69,7 @@ export default function Register() {
             value={confirmarSenha}
             onChangeText={setConfirmarSenha}
             secureTextEntry
+            placeholder="Digite a sua senha novamente"
           />
 
           <ThemedButton

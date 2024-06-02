@@ -5,12 +5,15 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { Priority, getPriority } from '@/enums/EnumPriority';
 import { Picker } from '@react-native-picker/picker';
-import moment from 'moment';
-import { useEffect, useState } from 'react';
+import moment, { Moment } from 'moment';
+import { useContext, useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useColorScheme } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { TaskContext } from '@/app/(tabs)/_layout';
+import { Status } from '@/enums/EnumStatus';
+import { router } from 'expo-router';
 
 LocaleConfig.locales['pt-br'] = {
     monthNames: [
@@ -30,6 +33,12 @@ LocaleConfig.locales['pt-br'] = {
 LocaleConfig.defaultLocale = 'pt-br';
 
 export default function InsertTask() {
+    const {
+        IMMUTABLEDATA,
+        DATA,
+        SETDATA,
+    } = useContext(TaskContext);
+
     const colorScheme = useColorScheme();
 
     const [date, setDate] = useState(moment());
@@ -37,7 +46,10 @@ export default function InsertTask() {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [time, setTime] = useState('');
+
+    const [time, setTime] = useState<Moment | null>(null);
+    const [timePickerVisible, setTimePickerVisible] = useState(false);
+
     const [priority, setPriority] = useState(Priority.Low);
 
     const handleInsert = () => {
@@ -53,6 +65,19 @@ export default function InsertTask() {
             alert('Por favor, insira um horário válido no formato HH:mm');
             return;
         }
+
+        SETDATA([
+            ...DATA,
+            {
+                title,
+                description,
+                date: date.format('DD [de] MMMM [até] HH:mm'),
+                priority,
+                status: Status.Todo,
+            }
+        ]);
+
+        router.replace('/task');
     };
 
     useEffect(() => {
@@ -77,12 +102,32 @@ export default function InsertTask() {
         setMarkedDates(newMarkedDates);
     };
 
+    const handleConfirmDate = (time: moment.MomentInput) => {
+        const selectedMoment = moment(time);
+        setTime(selectedMoment);
+        setTimePickerVisible(false);
+
+        const combinedDateTime = moment(date).set({
+            hour: selectedMoment.hour(),
+            minute: selectedMoment.minute(),
+            second: selectedMoment.second(),
+        });
+        setDate(combinedDateTime);
+    };
+
     return (
         <ThemedView style={styles.container}>
             <KeyboardAvoidingView
                 style={styles.keyboardAvoidingView}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
+                <ThemedText
+                    type="title"
+                    style={styles.title}
+                >
+                    Cadastrar tarefa
+                </ThemedText>
+
                 <ScrollView contentContainerStyle={styles.scrollViewContent}>
                     <Calendar
                         style={styles.calendar}
@@ -102,14 +147,15 @@ export default function InsertTask() {
                         hideExtraDays={true}
                         firstDay={1}
                         renderArrow={(direction) => direction === 'left' ? (
-                            <Icon name="chevron-left" size={15} color={colorScheme === 'light' ? Colors['dark'].icon : Colors['light'].icon} />                       
+                            <Icon name="chevron-left" size={15} color={colorScheme === 'light' ? Colors['dark'].icon : Colors['light'].icon} />
                         ) : (
-                            <Icon name="chevron-right" size={15} color={colorScheme === 'light' ? Colors['dark'].icon : Colors['light'].icon} />                       
+                            <Icon name="chevron-right" size={15} color={colorScheme === 'light' ? Colors['dark'].icon : Colors['light'].icon} />
                         )}
                     />
 
                     <ThemedText style={styles.label}>Título</ThemedText>
                     <ThemedTextInput
+                        placeholder="Digite um título para sua tarefa"
                         style={styles.input}
                         value={title}
                         onChangeText={setTitle}
@@ -117,22 +163,29 @@ export default function InsertTask() {
 
                     <ThemedText style={styles.label}>Descrição</ThemedText>
                     <ThemedTextInput
+                        placeholder="Digite uma descrição"
                         style={styles.input}
                         value={description}
                         onChangeText={setDescription}
                     />
 
-                    <ThemedText style={styles.label}>Digite um horário (HH:mm)</ThemedText>
+                    <ThemedText style={styles.label}>Digite um horário</ThemedText>
+                    <DateTimePickerModal
+                        isVisible={timePickerVisible}
+                        mode="time"
+                        onConfirm={handleConfirmDate}
+                        onCancel={() => setTimePickerVisible(false)}
+                    />
                     <ThemedTextInput
                         style={styles.input}
-                        placeholder="HH:mm"
-                        value={time}
-                        onChangeText={setTime}
-                        keyboardType="numeric"
+                        placeholder="Selecione um horário"
+                        value={time?.format('HH:mm')}
+                        onPress={() => setTimePickerVisible(true)}
                     />
 
                     <ThemedText style={styles.label}>Prioridade</ThemedText>
                     <Picker
+                        itemStyle={styles.picker}
                         selectedValue={priority}
                         style={[styles.picker, { backgroundColor: colorScheme === 'light' ? Colors['light'].background : Colors['dark'].background }]}
                         onValueChange={(itemValue) => setPriority(itemValue)}
@@ -161,6 +214,10 @@ const styles = StyleSheet.create({
     keyboardAvoidingView: {
         zIndex: 1,
     },
+    title: {
+        marginTop: 30,
+        marginBottom: 16,
+    },
     scrollViewContent: {
         flexGrow: 1,
         justifyContent: 'center',
@@ -180,7 +237,6 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     calendar: {
-        marginTop: 90,
         marginBottom: 16,
     },
     picker: {
