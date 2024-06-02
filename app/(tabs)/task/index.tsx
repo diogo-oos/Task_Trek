@@ -12,6 +12,7 @@ import { ThemedBottomSheetFilterPriority } from '@/components/themedBottomSheet/
 import { Status, getStatus } from '@/enums/EnumStatus';
 import { ThemedBottomSheetFilterStatus } from '@/components/themedBottomSheet/components/filter/ThemedBottomSheetFilterStatus';
 import { Sort } from '@/enums/EnumSort';
+import { router } from 'expo-router';
 
 export type ListItens = {
   title: string,
@@ -412,6 +413,7 @@ export default function taskList() {
             lightColor="#3fa9ff"
             darkColor="#3fa9ff"
             type="clear"
+            onPress={() => router.push('/task/components/insertTask')}
             icon={{
               name: 'plus',
               type: 'font-awesome',

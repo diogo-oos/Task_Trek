@@ -29,6 +29,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'light' ? DefaultTheme : DarkTheme }>
       <Stack>
         <Stack.Screen name="task/index" options={{ headerShown: false }} />
+        <Stack.Screen name="task/components/insertTask/index" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );
