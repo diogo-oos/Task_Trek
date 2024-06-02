@@ -12,8 +12,8 @@ import { Calendar, LocaleConfig } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { TaskContext } from '@/app/(tabs)/_layout';
-import { Status } from '@/enums/EnumStatus';
-import { router } from 'expo-router';
+import { Status, getStatus } from '@/enums/EnumStatus';
+import { router, useLocalSearchParams } from 'expo-router';
 
 LocaleConfig.locales['pt-br'] = {
     monthNames: [
@@ -32,27 +32,29 @@ LocaleConfig.locales['pt-br'] = {
 
 LocaleConfig.defaultLocale = 'pt-br';
 
-export default function InsertTask() {
+export default function HandleTask() {
+    const colorScheme = useColorScheme();
+
     const {
-        IMMUTABLEDATA,
         DATA,
         SETDATA,
     } = useContext(TaskContext);
 
-    const colorScheme = useColorScheme();
+    const { taskIndex } = useLocalSearchParams();
 
-    const [date, setDate] = useState(moment());
+    const [date, setDate] = useState(Number(taskIndex) !== -1 ? moment(DATA[Number(taskIndex)].date) : moment());
     const [markedDates, setMarkedDates] = useState({});
 
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
+    const [title, setTitle] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].title : '');
+    const [description, setDescription] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].description : '');
 
     const [time, setTime] = useState<Moment | null>(null);
     const [timePickerVisible, setTimePickerVisible] = useState(false);
 
-    const [priority, setPriority] = useState(Priority.Low);
+    const [priority, setPriority] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].priority : Priority.Low);
+    const [status, setStatus] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].status : Status.Todo);
 
-    const handleInsert = () => {
+    const handleTask = () => {
         const isValidTime = moment(time, 'HH:mm', true).isValid();
         if (isValidTime) {
             const newDateTime = moment(date.format('YYYY-MM-DD') + ' ' + time, 'YYYY-MM-DD HH:mm');
@@ -73,7 +75,7 @@ export default function InsertTask() {
                 description,
                 date: date.format('DD [de] MMMM [até] HH:mm'),
                 priority,
-                status: Status.Todo,
+                status: Number(taskIndex) !== -1 ? status : Status.Todo,
             }
         ]);
 
@@ -125,7 +127,7 @@ export default function InsertTask() {
                     type="title"
                     style={styles.title}
                 >
-                    Cadastrar tarefa
+                    {Number(taskIndex) !== -1 ? 'Editar tarefa' : 'Cadastrar tarefa'}
                 </ThemedText>
 
                 <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -195,9 +197,29 @@ export default function InsertTask() {
                         <Picker.Item label={getPriority(Priority.High)} value={Priority.High} />
                     </Picker>
 
+                    {
+                        Number(taskIndex) !== -1 && (
+                            <>
+                                <ThemedText style={styles.label}>Status</ThemedText>
+                                <Picker
+                                    itemStyle={styles.picker}
+                                    selectedValue={status}
+                                    style={[styles.picker, { backgroundColor: colorScheme === 'light' ? Colors['light'].background : Colors['dark'].background }]}
+                                    onValueChange={(itemValue) => setStatus(itemValue)}
+                                >
+                                    <Picker.Item label={getStatus(Status.Todo)} value={Status.Todo} />
+                                    <Picker.Item label={getStatus(Status.InProgress)} value={Status.InProgress} />
+                                    <Picker.Item label={getStatus(Status.Done)} value={Status.Done} />
+                                </Picker>
+                            </>
+                        )
+                    }
+
                     <ThemedButton
-                        title={Platform.OS === 'ios' ? 'Cadastrar' : 'CADASTRAR'}
-                        onPress={handleInsert}
+                        title={Platform.OS === 'ios'
+                        ? Number(taskIndex) !== -1 ? 'Editar' : 'Cadastrar'
+                        : Number(taskIndex) !== -1 ? 'EDITAR' : 'CADASTRAR'}
+                        onPress={handleTask}
                         containerStyle={styles.button}
                     />
                 </ScrollView>
@@ -246,5 +268,6 @@ const styles = StyleSheet.create({
     },
     button: {
         zIndex: 1,
+        marginBottom: 100,
     },
 });

@@ -165,7 +165,7 @@ export default function RootLayoutTabs() {
       <TaskContext.Provider value={sharedValues}>
         <Stack>
           <Stack.Screen name="task/index" options={{ headerShown: false }} />
-          <Stack.Screen name="task/components/insertTask/index" options={{ headerShown: false }} />
+          <Stack.Screen name="task/components/handleTask/[taskIndex]" options={{ headerShown: false }} />
         </Stack>
       </TaskContext.Provider>
     </ThemeProvider>

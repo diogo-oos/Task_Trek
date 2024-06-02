@@ -6,7 +6,7 @@ import { Priority, getPriority } from '@/enums/EnumPriority';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, FlatList, ListRenderItemInfo, useColorScheme } from 'react-native';
+import { StyleSheet, FlatList, ListRenderItemInfo, useColorScheme, Alert } from 'react-native';
 import { ThemedBottomSheet } from '@/components/themedBottomSheet/ThemedBottomSheet';
 import { ThemedBottomSheetFilterPriority } from '@/components/themedBottomSheet/components/filter/ThemedBottomSheetFilterPriority';
 import { Status, getStatus } from '@/enums/EnumStatus';
@@ -14,6 +14,7 @@ import { ThemedBottomSheetFilterStatus } from '@/components/themedBottomSheet/co
 import { Sort } from '@/enums/EnumSort';
 import { router } from 'expo-router';
 import { TaskContext } from '../_layout';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export type ListItens = {
   title: string,
@@ -22,7 +23,7 @@ export type ListItens = {
   priority: number,
   status: number,
 };
- 
+
 export default function taskList() {
   const {
     IMMUTABLEDATA,
@@ -57,10 +58,30 @@ export default function taskList() {
     setSelectedDate(moment(currentDate));
   };
 
-  const handleEditItem = () => {
+  const handleEditItem = (taskIndex: number) => {
+    router.push(`/task/components/handleTask/${taskIndex.toString()}`);
   };
 
-  const handleDeleteItem = () => {
+  const handleDeleteItem = (taskIndex: number) => {
+    Alert.alert(
+      'Confirmação',
+      'Você tem certeza que deseja excluir esta tarefa?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          onPress: () => {
+            const newItems = [...DATA];
+            newItems.splice(taskIndex, 1);
+            SETDATA(newItems);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleFilterItemByPriority = (selectIds: number[]) => {
@@ -98,18 +119,26 @@ export default function taskList() {
         darkColor={Colors['dark'].background}
         style={styles.itemContainer}
       >
-        <ThemedButton
+        <ThemedView
           lightColor={Colors['light'].background}
           darkColor={Colors['dark'].background}
-          type="clear"
-          onPress={handleEditItem}
-          icon={{
-            name: 'edit',
-            type: 'font-awesome',
-            size: 30,
-            color: colorScheme === 'light' ? Colors['dark'].icon : Colors['light'].icon,
-          }}
-        />
+          style={styles.itemContainerButton}
+        >
+          <Icon
+            style={styles.itemButtonEdit}
+            onPress={() => handleEditItem(item.index)}
+            name="edit"
+            size={30}
+            color={colorScheme === 'light' ? Colors['dark'].icon : Colors['light'].icon}
+          />
+          <Icon
+            onPress={() => handleDeleteItem(item.index)}
+            name="trash-o"
+            size={30}
+            color={colorScheme === 'light' ? Colors['dark'].icon : Colors['light'].icon}
+          />
+        </ThemedView>
+
         <ThemedView
           lightColor={Colors['light'].background}
           darkColor={Colors['dark'].background}
@@ -270,7 +299,7 @@ export default function taskList() {
           },
           {
             onPress: () => handleSortItemByTitle(),
-            icon: sortTitle === Sort.Ascending ?  'sort-alpha-asc' : 'sort-alpha-desc',
+            icon: sortTitle === Sort.Ascending ? 'sort-alpha-asc' : 'sort-alpha-desc',
             iconType: 'font-awesome',
             title: 'Título',
           },
@@ -315,7 +344,7 @@ export default function taskList() {
             lightColor="#3fa9ff"
             darkColor="#3fa9ff"
             type="clear"
-            onPress={() => router.push('/task/components/insertTask')}
+            onPress={() => router.push('/task/components/handleTask/-1')}
             icon={{
               name: 'plus',
               type: 'font-awesome',
@@ -355,7 +384,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     padding: 5,
   },
-
   container: {
     flex: 1,
     paddingLeft: 20,
@@ -371,6 +399,16 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: 'row',
     marginBottom: 30,
+    marginRight: 20,
+  },
+  itemContainerButton: {
+    marginLeft: 16,
+    marginRight: 5,
+    marginTop: 3,
+    flexDirection: 'column',
+  },
+  itemButtonEdit: {
+    marginBottom: 3,
   },
   itemTitle: {
     marginBottom: 15,
