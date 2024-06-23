@@ -6,7 +6,7 @@ import { Colors } from '@/constants/Colors';
 import { Priority, getPriority } from '@/enums/EnumPriority';
 import { Picker } from '@react-native-picker/picker';
 import moment, { Moment } from 'moment';
-import { useContext, useEffect, useState } from 'react';
+import { SetStateAction, useContext, useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useColorScheme } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -14,6 +14,8 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { TaskContext } from '@/app/(tabs)/_layout';
 import { Status, getStatus } from '@/enums/EnumStatus';
 import { router, useLocalSearchParams } from 'expo-router';
+import { DocumentData, DocumentReference, addDoc, collection, doc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '@/services/firebaseConfig';
 
 LocaleConfig.locales['pt-br'] = {
     monthNames: [
@@ -36,54 +38,30 @@ export default function HandleTask() {
     const colorScheme = useColorScheme();
 
     const {
-        DATA,
-        SETDATA,
+        immutableData,
+        setImmutableData,
+        data,
+        setData,
     } = useContext(TaskContext);
 
     const { taskIndex } = useLocalSearchParams();
 
-    const [date, setDate] = useState(Number(taskIndex) !== -1 ? moment(DATA[Number(taskIndex)].date) : moment());
+    const [loading, setLoading] = useState(false);
+
+    const [date, setDate] = useState(Number(taskIndex) !== -1 ? moment(data[Number(taskIndex)].date) : moment());
     const [markedDates, setMarkedDates] = useState({});
 
-    const [title, setTitle] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].title : '');
-    const [description, setDescription] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].description : '');
+    const [title, setTitle] = useState(Number(taskIndex) !== -1 ? data[Number(taskIndex)].title : '');
+    const [description, setDescription] = useState(Number(taskIndex) !== -1 ? data[Number(taskIndex)].description : '');
 
-    const [time, setTime] = useState<Moment | null>(null);
+    const [time, setTime] = useState<Date | null>(Number(taskIndex) !== -1 ? moment(data[Number(taskIndex)].date).toDate() : moment().toDate());
     const [timePickerVisible, setTimePickerVisible] = useState(false);
 
-    const [priority, setPriority] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].priority : Priority.Low);
-    const [status, setStatus] = useState(Number(taskIndex) !== -1 ? DATA[Number(taskIndex)].status : Status.Todo);
-
-    const handleTask = () => {
-        const isValidTime = moment(time, 'HH:mm', true).isValid();
-        if (isValidTime) {
-            const newDateTime = moment(date.format('YYYY-MM-DD') + ' ' + time, 'YYYY-MM-DD HH:mm');
-            if (newDateTime.isBefore(moment())) {
-                Alert.alert('Data inválida', 'Por favor, selecione uma data a partir da data atual');
-                return;
-            }
-            setDate(newDateTime);
-        } else {
-            Alert.alert('Horário inválido', 'Por favor, insira um horário válido no formato HH:mm');
-            return;
-        }
-
-        SETDATA([
-            ...DATA,
-            {
-                title,
-                description,
-                date: date.format('DD [de] MMMM [até] HH:mm'),
-                priority,
-                status: Number(taskIndex) !== -1 ? status : Status.Todo,
-            }
-        ]);
-
-        router.replace('/task');
-    };
+    const [priority, setPriority] = useState(Number(taskIndex) !== -1 ? data[Number(taskIndex)].priority : Priority.Low);
+    const [status, setStatus] = useState(Number(taskIndex) !== -1 ? data[Number(taskIndex)].status : Status.Todo);
 
     useEffect(() => {
-        moment.locale('pt-br'); // Configura o locale para português do Brasil
+        moment.locale('pt-br');
         updateMarkedDates(moment());
     }, []);
 
@@ -104,17 +82,123 @@ export default function HandleTask() {
         setMarkedDates(newMarkedDates);
     };
 
-    const handleConfirmDate = (time: moment.MomentInput) => {
-        const selectedMoment = moment(time);
-        setTime(selectedMoment);
+    const handleConfirmTime = (selectedTime: Date) => {
+        setTime(selectedTime);
+        const combined = moment(date)
+            .set({
+                hour: moment(selectedTime).hour(),
+                minute: moment(selectedTime).minute(),
+                second: 0,
+                millisecond: 0
+            });
+        setDate(combined);
         setTimePickerVisible(false);
+    };
 
-        const combinedDateTime = moment(date).set({
-            hour: selectedMoment.hour(),
-            minute: selectedMoment.minute(),
-            second: selectedMoment.second(),
+    const updateTask = (docRef: DocumentReference<DocumentData, DocumentData>) => {
+        if (!auth.currentUser) return;
+
+        updateDoc(docRef, {
+            title: title,
+            description: description,
+            date: moment(date).format(),
+            priority: priority,
+            status: status,
+        }).then((docRef) => {
+            if (!auth.currentUser) return;
+
+            const taskIndexImmutableData = immutableData.findIndex((task) => task.id === data[Number(taskIndex)].id);
+
+            if (taskIndexImmutableData !== -1) {
+                immutableData[taskIndexImmutableData] = {
+                    id: immutableData[taskIndexImmutableData].id,
+                    userId: immutableData[taskIndexImmutableData].userId,
+                    title,
+                    description,
+                    date: moment(date).format(),
+                    priority,
+                    status: status,
+                }
+                setImmutableData(immutableData);
+            }
+
+            data[Number(taskIndex)] = {
+                id: data[Number(taskIndex)].id,
+                userId: data[Number(taskIndex)].userId,
+                title,
+                description,
+                date: moment(date).format(),
+                priority,
+                status: Number(taskIndex) !== -1 ? status : Status.Todo,
+            };
+            setData(data);
+
+            router.replace('/task');
+        }).catch(() => {
+            Alert.alert('Ops...', 'Ocorreu um erro ao editar a tarefa');
+        }).finally(() => {
+            setLoading(false);
         });
-        setDate(combinedDateTime);
+    };
+
+    const addTask = () => {
+        if (!auth.currentUser) return;
+
+        addDoc(collection(db, "tasks"), {
+            userId: auth.currentUser.uid,
+            title: title,
+            description: description,
+            date: moment(date).format(),
+            priority: priority,
+            status: Status.Todo,
+        }).then((docRef) => {
+            if (!auth.currentUser) return;
+
+            setImmutableData([
+                ...immutableData,
+                {
+                    id: docRef.id,
+                    userId: auth.currentUser.uid,
+                    title,
+                    description,
+                    date: moment(date).format(),
+                    priority,
+                    status: Status.Todo,
+                }
+            ]);
+            setData([
+                ...data,
+                {
+                    id: docRef.id,
+                    userId: auth.currentUser.uid,
+                    title,
+                    description,
+                    date: moment(date).format(),
+                    priority,
+                    status: Status.Todo,
+                }
+            ]);
+            router.replace('/task');
+        }).catch(() => {
+            Alert.alert('Ops...', 'Ocorreu um erro ao cadastrar a tarefa');
+        }).finally(() => {
+            setLoading(false);
+        });
+    };
+
+    const handleTask = () => {
+        if (moment(date).startOf('day').isBefore(moment().startOf('day'))) {
+            Alert.alert('Data inválida', 'Por favor, selecione uma data a partir da data atual');
+            return;
+        }
+
+        setLoading(true);
+        if (Number(taskIndex) !== -1) {
+            const docRef = doc(db, "tasks", data[Number(taskIndex)].id);
+            updateTask(docRef);
+        } else {
+            addTask();
+        }
     };
 
     return (
@@ -175,13 +259,13 @@ export default function HandleTask() {
                     <DateTimePickerModal
                         isVisible={timePickerVisible}
                         mode="time"
-                        onConfirm={handleConfirmDate}
+                        onConfirm={handleConfirmTime}
                         onCancel={() => setTimePickerVisible(false)}
                     />
                     <ThemedTextInput
                         style={styles.input}
                         placeholder="Selecione um horário"
-                        value={time?.format('HH:mm')}
+                        value={moment(time).format('HH:mm')}
                         onPress={() => setTimePickerVisible(true)}
                     />
 
@@ -217,10 +301,11 @@ export default function HandleTask() {
 
                     <ThemedButton
                         title={Platform.OS === 'ios'
-                        ? Number(taskIndex) !== -1 ? 'Editar' : 'Cadastrar'
-                        : Number(taskIndex) !== -1 ? 'EDITAR' : 'CADASTRAR'}
+                            ? Number(taskIndex) !== -1 ? 'Editar' : 'Cadastrar'
+                            : Number(taskIndex) !== -1 ? 'EDITAR' : 'CADASTRAR'}
                         onPress={handleTask}
                         containerStyle={styles.button}
+                        loading={loading}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>
