@@ -15,6 +15,8 @@ import { Sort } from '@/enums/EnumSort';
 import { router } from 'expo-router';
 import { TaskContext } from '../_layout';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/services/firebaseConfig';
 
 export type ListItens = {
   title: string,
@@ -24,7 +26,7 @@ export type ListItens = {
   status: number,
 };
 
-export default function taskList() {
+export default function TaskList() {
   const {
     IMMUTABLEDATA,
     DATA,
@@ -185,6 +187,13 @@ export default function taskList() {
     );
   };
 
+  const handleSignOut = () => {
+    Alert.alert('Saindo...');
+    signOut(auth).then(() => {
+      router.replace('/');
+    });
+  };
+
   return (
     <>
       <ThemedBottomSheetFilterPriority
@@ -240,7 +249,7 @@ export default function taskList() {
             darkColor={Colors['light'].text}
             type='subtitle'
           >
-            {selectedDate.format('LL')}
+            {selectedDate?.format('LL')}
           </ThemedText>
 
           <ThemedButton
@@ -360,14 +369,15 @@ export default function taskList() {
             lightColor="#3fa9ff"
             darkColor="#3fa9ff"
             type="clear"
+            onPress={handleSignOut}
             icon={{
-              name: 'reorder',
+              name: 'sign-out',
               type: 'font-awesome',
               size: 30,
               color: colorScheme === 'light' ? Colors['light'].icon : Colors['dark'].icon,
             }}
           />
-          <ThemedText style={styles.menuText}>Menu</ThemedText>
+          <ThemedText style={styles.menuText}>Sair</ThemedText>
         </ThemedView>
       </ThemedView>
     </>

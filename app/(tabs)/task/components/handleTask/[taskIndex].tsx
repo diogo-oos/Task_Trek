@@ -7,7 +7,7 @@ import { Priority, getPriority } from '@/enums/EnumPriority';
 import { Picker } from '@react-native-picker/picker';
 import moment, { Moment } from 'moment';
 import { useContext, useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useColorScheme } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useColorScheme } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -59,12 +59,12 @@ export default function HandleTask() {
         if (isValidTime) {
             const newDateTime = moment(date.format('YYYY-MM-DD') + ' ' + time, 'YYYY-MM-DD HH:mm');
             if (newDateTime.isBefore(moment())) {
-                alert('Por favor, selecione uma data a partir da data atual');
+                Alert.alert('Data inválida', 'Por favor, selecione uma data a partir da data atual');
                 return;
             }
             setDate(newDateTime);
         } else {
-            alert('Por favor, insira um horário válido no formato HH:mm');
+            Alert.alert('Horário inválido', 'Por favor, insira um horário válido no formato HH:mm');
             return;
         }
 

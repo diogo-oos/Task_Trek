@@ -6,41 +6,29 @@ import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useColorScheme } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../services/firebaseConfig";
 
-export default function Register() {
+export default function Login() {
   const colorScheme = useColorScheme();
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  const [messageEmailAlreadyInUse, setMessageEmailAlreadyInUse] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    setMessageEmailAlreadyInUse(false);
+  const handleLogin = () => {
     setLoading(true);
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        updateProfile(userCredential.user, {
-          displayName: name,
-        }).then(() => {
-          router.replace('/task');
-        });
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        router.replace('/task');
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode);
         console.log(errorMessage);
-        if (errorCode === 'auth/email-already-in-use') {
-          setMessageEmailAlreadyInUse(true);
-        }
-        Alert.alert('Ops...', 'Ocorreu um erro ao cadastrar o usuário. Por favor, verifique o e-mail e/ou a senha');
+        Alert.alert('Ops...', 'E-mail e/ou a senha inválidos');
       })
       .finally(() => {
         setLoading(false);
@@ -51,10 +39,10 @@ export default function Register() {
     <ThemedView style={styles.container}>
       {
         loading ? (
-          <ThemedView style={styles.loading}>
-            <ActivityIndicator size="large" color={colorScheme === 'light' ? Colors['light'].text : Colors['dark'].text} />
-          </ThemedView>
-        ) : (
+            <ThemedView style={styles.loading}>
+              <ActivityIndicator size="large" color={colorScheme === 'light' ? Colors['light'].text : Colors['dark'].text} />
+            </ThemedView>
+          ) : (
           <>
             <KeyboardAvoidingView
               style={styles.keyboardAvoidingView}
@@ -71,29 +59,16 @@ export default function Register() {
                 type="title"
                 style={styles.subTitle}
               >
-                Cadastro
+                Login
               </ThemedText>
               <ScrollView contentContainerStyle={styles.scrollViewContent}>
-                <ThemedText style={styles.label}>Nome</ThemedText>
-                <ThemedTextInput
-                  style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Digite o seu nome"
-                />
-
-                <ThemedText style={styles.label}>
-                  Email 
-                  {
-                    messageEmailAlreadyInUse && <ThemedText style={[styles.label, styles.labelError]}>: Esse e-mail já está em uso. Por favor, digite outro e-mail</ThemedText>
-                  }
-                </ThemedText>
+                <ThemedText style={styles.label}>Email</ThemedText>
                 <ThemedTextInput
                   style={styles.input}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
-                  placeholder="Digite um e-mail válido"
+                  placeholder="Digite o seu e-mail"
                 />
 
                 <ThemedText style={styles.label}>Senha</ThemedText>
@@ -102,38 +77,29 @@ export default function Register() {
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
-                  placeholder="Digite a sua senha. (deve ter no mínimo 6 caracteres)"
-                />
-
-                <ThemedText style={styles.label}>Confirmar Senha</ThemedText>
-                <ThemedTextInput
-                  style={styles.input}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  placeholder="Digite a sua senha novamente"
+                  placeholder="Digite a sua senha"
                 />
 
                 <ThemedButton
-                  title={Platform.OS === 'ios' ? 'Cadastrar' : 'CADASTRAR'}
-                  onPress={handleRegister}
+                  title={Platform.OS === 'ios' ? 'Login' : 'LOGIN'}
+                  onPress={handleLogin}
                   containerStyle={styles.button}
                 />
 
                 <Link
-                  href="/login"
+                  href="/register"
                 >
                   <ThemedText
                     type="link"
                   >
-                    Já tem uma conta? Vá para a tela de login
+                    Não tem uma conta? Cadastre-se
                   </ThemedText>
                 </Link>
               </ScrollView>
             </KeyboardAvoidingView>
 
             <ImageBackground
-              source={colorScheme === 'light' ? require('../../assets/images/calendar-background-image-light.png') : require('../../assets/images/calendar-background-image-dark.png')}
+              source={colorScheme === 'dark' ? require('../../assets/images/calendar-background-image-dark.png') : require('../../assets/images/calendar-background-image-light.png')}
               style={styles.backgroundImage}
               imageStyle={styles.backgroundImageStyle}
             />
@@ -179,9 +145,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     zIndex: 1,
   },
-  labelError: {
-    color: 'red',
-  },
   input: {
     height: 40,
     borderWidth: 1,
@@ -194,7 +157,7 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     position: 'static',
-    bottom: 200,
+    bottom: 25,
     left: 30,
     right: 50,
     height: 350,
