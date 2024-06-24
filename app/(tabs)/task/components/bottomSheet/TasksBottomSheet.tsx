@@ -16,11 +16,13 @@ import { Alert, StyleSheet, useColorScheme } from "react-native";
 
 interface IProps {
     immutableData: ListItens[],
+    selectedDate: moment.Moment,
     setData: React.Dispatch<React.SetStateAction<ListItens[]>>,
 }
 
 export default function TasksBottomSheet({
     immutableData,
+    selectedDate,
     setData,
 }: IProps) {
     const colorScheme = useColorScheme();
@@ -35,29 +37,29 @@ export default function TasksBottomSheet({
     const [sortTitle, setSortTitle] = useState(Sort.Ascending);
 
     const handleFilterItemByPriority = (selectIds: number[]) => {
-        setData(immutableData.filter((item) => selectIds.includes(item.priority)));
+        setData(immutableData.filter((task) => moment(task.date).startOf('day').isSame(selectedDate.startOf('day'))).filter((item) => selectIds.includes(item.priority)));
     };
 
     const handleFilterItemByStatus = (selectIds: number[]) => {
-        setData(immutableData.filter((item) => selectIds.includes(item.status)));
+        setData(immutableData.filter((task) => moment(task.date).startOf('day').isSame(selectedDate.startOf('day'))).filter((item) => selectIds.includes(item.status)));
     };
 
     const handleSortItemByDate = () => {
         if (sortDate === Sort.Descending) {
-            setData(immutableData.sort((a, b) => moment(a.date).isAfter(b.date) ? 1 : -1));
+            setData(immutableData.filter((task) => moment(task.date).startOf('day').isSame(selectedDate.startOf('day'))).sort((a, b) => moment(a.date).isAfter(b.date) ? 1 : -1));
             setSortDate(Sort.Ascending);
         } else {
-            setData(immutableData.sort((a, b) => moment(a.date).isBefore(b.date) ? 1 : -1));
+            setData(immutableData.filter((task) => moment(task.date).startOf('day').isSame(selectedDate.startOf('day'))).sort((a, b) => moment(a.date).isBefore(b.date) ? 1 : -1));
             setSortDate(Sort.Descending);
         }
     };
 
     const handleSortItemByTitle = () => {
         if (sortTitle === Sort.Ascending) {
-            setData(immutableData.sort((a, b) => a.title.localeCompare(b.title)));
+            setData(immutableData.filter((task) => moment(task.date).startOf('day').isSame(selectedDate.startOf('day'))).sort((a, b) => a.title.localeCompare(b.title)));
             setSortTitle(Sort.Descending);
         } else {
-            setData(immutableData.sort((a, b) => b.title.localeCompare(a.title)));
+            setData(immutableData.filter((task) => moment(task.date).startOf('day').isSame(selectedDate.startOf('day'))).sort((a, b) => b.title.localeCompare(a.title)));
             setSortTitle(Sort.Ascending);
         }
     };

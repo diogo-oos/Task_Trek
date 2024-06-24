@@ -245,7 +245,7 @@ export default function TaskList() {
           }
         </ThemedView>
 
-        <TasksBottomSheet immutableData={immutableData} setData={setData} />
+        <TasksBottomSheet immutableData={immutableData} selectedDate={selectedDate} setData={setData} />
       </>
     </>
   );
